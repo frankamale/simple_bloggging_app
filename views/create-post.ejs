@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('includes/head') %>
+  <body>
+    <%- include('includes/header') %>
+    <main>
+      <form action="/create-post" method="POST">
+        <% if (errors && errors.length > 0) { %>
+          <% errors.forEach(error => { %>
+            <p class="notice" style="color: red;"><%= error %></p>
+          <% }) %>
+        <% } %>
+        <fieldset>
+          <legend>Create a new post</legend>
+
+          <label for="title"><small>Title</small></label>
+          <input type="text" id="title" name="title" required />
+
+          <label for="body ">Content</label>
+          <textarea name="body" id="body"></textarea>
+
+          <br />
+          <button type="submit">Save new post</button>
+        </fieldset>
+      </form>
+    </main>
+    <footer>
+      <%- include('includes/footer') %>
+    </footer>
+  </body>
+</html>
