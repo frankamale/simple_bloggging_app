@@ -7,6 +7,18 @@ const jwt = require("jsonwebtoken");
 const db = require("better-sqlite3")("ourApp.db");
 db.pragma("journal_mode = WAL");
 
+// Validation function for post data
+function sharedPostValidation(req) {
+  const errors = [];
+  if (!req.body.title || !req.body.title.trim()) {
+    errors.push("You must provide a title.");
+  }
+  if (!req.body.body || !req.body.body.trim()) {
+    errors.push("You must provide post content.");
+  }
+  return errors;
+}
+
 // Database setup
 const createTables = db.transaction(() => {
   db.prepare(
@@ -134,7 +146,7 @@ app.get("/post/:id", (req, res) => {
     return res.redirect("/");
   }
   console.log(post);
-  const isAuthor = post.authorid === req.userid;
+  const isAuthor = post.authorid === req.user.userId;
 
   res.render("single-post", { post, isAuthor });
 });
@@ -144,15 +156,15 @@ app.get("/edit-post/:id", mustBeLoggedIn, (req, res) => {
   const statement = db.prepare("SELECT * FROM post WHERE id = ?");
   const post = statement.get(req.params.id);
 
-  if (post) {
-    res.redirect("/");
+  if (!post) {
+    return res.redirect("/");
   }
   // if not author, redirect to home page
 
   console.log("aurthorid:" + post.authorid);
-  console.log("userid:" + post.userId);
+  console.log("userid:" + req.user.userId);
 
-  if (post.authorid !== req.userid) {
+  if (post.authorid !== req.user.userId) {
     return res.redirect("/");
   }
 
@@ -165,11 +177,11 @@ app.post("/edit-post/:id", mustBeLoggedIn, (req, res) => {
   const statement = db.prepare("SELECT * FROM post WHERE id = ?");
   const post = statement.get(req.params.id);
 
-  if (post) {
-    res.redirect("/");
+  if (!post) {
+    return res.redirect("/");
   }
 
-  if (post.authorid !== req.userid) {
+  if (post.authorid !== req.user.userId) {
     return res.redirect("/");
   }
 
@@ -184,18 +196,18 @@ app.post("/edit-post/:id", mustBeLoggedIn, (req, res) => {
   );
   updateStatement.run(req.body.title, req.body.body, req.params.id);
 
-  res.redirect(`/post/${(req, params.id)}`);
+  res.redirect(`/post/${req.params.id}`);
 });
 
 app.post("/delete-post/:id", mustBeLoggedIn, (req, res) => {
   const statement = db.prepare("SELECT * FROM post WHERE id = ?");
   const post = statement.get(req.params.id);
 
-  if (post) {
-    res.redirect("/");
+  if (!post) {
+    return res.redirect("/");
   }
 
-  if (post.authorid !== req.userid) {
+  if (post.authorid !== req.user.userId) {
     return res.redirect("/");
   }
 
